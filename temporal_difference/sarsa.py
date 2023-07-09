@@ -1,0 +1,32 @@
+from collections import defaultdict
+
+import numpy as np
+
+from utils.utils import get_epsilon_greedy_action
+
+
+def sarsa(env, iterations, epsilon=0.1, alpha=0.1, gamma=1.0):
+    q_values = defaultdict(lambda: np.zeros(env.n_actions))
+    step_counter = []
+    sum_rewards = []
+
+    for i in range(iterations):
+        state = env.reset()
+        action = get_epsilon_greedy_action(state, epsilon, env.n_actions, q_values)
+        terminated = False
+        step = 0
+        sum_reward = 0
+
+        while not terminated:
+            next_state, reward, terminated = env.step(action)
+            step += 1
+            sum_reward += reward
+            next_action = get_epsilon_greedy_action(next_state, epsilon, env.n_actions, q_values)
+            q_values[state][action] = q_values[state][action] + alpha * (reward + gamma * q_values[next_state][next_action] - q_values[state][action])
+            state = next_state
+            action = next_action
+
+        step_counter.append(step)
+        sum_rewards.append(sum_reward)
+
+    return q_values, step_counter, sum_rewards
